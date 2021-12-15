@@ -1,8 +1,13 @@
-﻿using Microsoft.Azure.WebJobs;
+﻿using ClassLibrary.Entities;
+using ClassLibrary.Shared.Interfaces;
+using InfraLibrary;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MyExampleFunction;
 using Serilog;
+using System;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace MyExampleFunction
@@ -17,6 +22,8 @@ namespace MyExampleFunction
 
         private IServiceCollection ConfigureServices(IServiceCollection services)
         {
+            var databaseConnectionString = Environment.GetEnvironmentVariable("DatabaseConnectionString");
+
             services
                 .AddLogging(builder => builder
                     .AddSerilog(new LoggerConfiguration()
@@ -26,7 +33,9 @@ namespace MyExampleFunction
                         .WriteTo.Console()
                         //.WriteTo.DatadogLogs()
                         .CreateLogger()
-                        ));
+                        ))
+                .AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(databaseConnectionString))
+                .AddScoped<IRepository<Product>, Repository<Product>>();
             return services;
         }
     }

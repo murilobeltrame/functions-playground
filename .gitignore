@@ -455,3 +455,6 @@ $RECYCLE.BIN/
 
 **/TestResults/
 **/coveragereport/
+
+**/.terraform
+**/*.tfstate.backup
