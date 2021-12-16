@@ -16,11 +16,14 @@ variable "resource_group_name" {}
 variable "resources_location" {
   default = "westus2"
 }
+variable "sb_authorization_rule_name" {
+  default = "SendAndListenPolicy"
+}
 variable "mssql_server_username" {
   default = "4dm1n157r470r"
 }
 variable "mssql_server_password" {
-  defalt = "4-v3ry-53cr37-p455w0rd"
+  default = "4-v3ry-53cr37-p455w0rd"
 }
 variable "mssql_database_name" {
   default = "mytstdb"
@@ -41,7 +44,7 @@ resource "azurerm_servicebus_namespace" "sb" {
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "sb_auth_rule" {
-  name                = "SendAndListenPolicy"
+  name                = var.sb_authorization_rule_name
   namespace_name      = azurerm_servicebus_namespace.sb.name
   resource_group_name = azurerm_resource_group.rg.name
   listen              = true
@@ -107,20 +110,65 @@ resource "azurerm_mssql_firewall_rule" "mssql_firewall_local_env" {
   end_ip_address   = chomp(data.http.myip.body)
 }
 
-# MISSING APP CONFIGURATION / VAULT
+## FUNCTION APP
 
+resource "azurerm_storage_account" "app_storage" {
+  name                     = "${azurerm_resource_group.rg.name}sa"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "app_service_plan" {
+  name                = "${azurerm_resource_group.rg.name}sp"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  kind                = "FunctionApp"
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+data "azurerm_servicebus_namespace_authorization_rule" "sb_auth_rule" {
+  name                = var.sb_authorization_rule_name
+  namespace_name      = azurerm_servicebus_namespace.sb.name
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+data "azurerm_mssql_server" "mssql_server" {
+  name                = "${azurerm_resource_group.rg.name}db"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_function_app" "app" {
+  name                       = "${azurerm_resource_group.rg.name}app"
+  resource_group_name        = azurerm_resource_group.rg.name
+  location                   = azurerm_resource_group.rg.location
+  app_service_plan_id        = azurerm_app_service_plan.app_service_plan.id
+  storage_account_name       = azurerm_storage_account.app_storage.name
+  storage_account_access_key = azurerm_storage_account.app_storage.primary_access_key
+  app_settings = {
+    BrokerConnectionString   = data.azurerm_servicebus_namespace_authorization_rule.sb_auth_rule.primary_connection_string
+    DatabaseConnectionString = "Server=tcp:${data.azurerm_mssql_server.mssql_server.fully_qualified_domain_name},1433;Initial Catalog=${var.mssql_database_name};Persist Security Info=False;User ID=${var.mssql_server_username};Password=${var.mssql_server_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  }
+}
 
 # Outputs
 
-data "azurerm_servicebus_namespace_authorization_rule" "sb_authrule_data" {
-  name                = azurerm_servicebus_namespace.sb.name
-  resource_group_name = azurerm_resource_group.rg.name
-}
 output "BrokerConnectionString" {
-  value = data.azurerm_servicebus_namespace_authorization_rule.sb_authrule_data.default_primary_connection_string
+  value     = data.azurerm_servicebus_namespace_authorization_rule.sb_auth_rule.primary_connection_string
+  sensitive = true
 }
-
 
 output "DatabaseConnectionString" {
-  # value = azurerm_mssql_server.mssql_server.
+  value     = "Server=tcp:${data.azurerm_mssql_server.mssql_server.fully_qualified_domain_name},1433;Initial Catalog=${var.mssql_database_name};Persist Security Info=False;User ID=${var.mssql_server_username};Password=${var.mssql_server_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  sensitive = true
 }
+
+# Server=tcp:myfunctstdb.database.windows.net,1433;
+# Initial Catalog=mytstdb;Persist Security Info=False;
+# User ID=4dm1n157r470r;Password=4-v3ry-53cr37-p455w0rd;
+# MultipleActiveResultSets=False;Encrypt=True;
+# TrustServerCertificate=False;Connection Timeout=30;
