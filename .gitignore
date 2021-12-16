@@ -455,6 +455,7 @@ $RECYCLE.BIN/
 
 **/TestResults/
 **/coveragereport/
+**/StrykerOutput/
 
 # Local .terraform directories
 **/.terraform/*

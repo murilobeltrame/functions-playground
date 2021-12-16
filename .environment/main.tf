@@ -166,9 +166,3 @@ output "DatabaseConnectionString" {
   value     = "Server=tcp:${data.azurerm_mssql_server.mssql_server.fully_qualified_domain_name},1433;Initial Catalog=${var.mssql_database_name};Persist Security Info=False;User ID=${var.mssql_server_username};Password=${var.mssql_server_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   sensitive = true
 }
-
-# Server=tcp:myfunctstdb.database.windows.net,1433;
-# Initial Catalog=mytstdb;Persist Security Info=False;
-# User ID=4dm1n157r470r;Password=4-v3ry-53cr37-p455w0rd;
-# MultipleActiveResultSets=False;Encrypt=True;
-# TrustServerCertificate=False;Connection Timeout=30;
