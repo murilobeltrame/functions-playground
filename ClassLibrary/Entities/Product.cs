@@ -25,7 +25,7 @@ namespace ClassLibrary.Entities
         public string Description { get; protected set; }
         public Guid Id { get; protected set; }
 
-        public static Product FromCmsProduct(CmsProduct product) => new Product(product.Code, product.Name);
+        public static Product FromCmsProduct(LegacyProduct product) => new Product(product.Code, product.Name);
 
         public byte[] ToBytes()
         {

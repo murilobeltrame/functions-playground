@@ -19,7 +19,7 @@ namespace MyExampleFunction
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            var cmsProduct = await CmsProduct.FromStreamAsync(req.Body);
+            var cmsProduct = await LegacyProduct.FromStreamAsync(req.Body);
             return new Message
             {
                 CorrelationId = Guid.NewGuid().ToString(),

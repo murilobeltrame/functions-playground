@@ -49,7 +49,7 @@ namespace Tests.ClassLibrary
         [Fact]
         public void BeCreatedFromAValidCmsProduct()
         {
-            var cmsProduct = new CmsProduct("code", "name");
+            var cmsProduct = new LegacyProduct("code", "name");
             var product = Product.FromCmsProduct(cmsProduct);
             Assert.NotEqual(Guid.Empty, product.Id);
             Assert.Equal(cmsProduct.Code, product.Sku);
