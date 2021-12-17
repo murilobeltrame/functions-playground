@@ -4,6 +4,9 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "BrokerConnectionString": "Endpoint=...",
     "DatabaseConnectionString": "Server=...",
+    "ServiceName": "example-function",
+    "DatadogApiKey": "...",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet"
   }
+
 }
