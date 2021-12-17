@@ -13,7 +13,7 @@ namespace Tests.ClassLibrary
         {
             var code = "some";
             var name = "name";
-            var product = new CmsProduct(code, name);
+            var product = new LegacyProduct(code, name);
             Assert.NotNull(product);
             Assert.Equal(code, product.Code);
             Assert.Equal(name, product.Name);
@@ -25,7 +25,7 @@ namespace Tests.ClassLibrary
             var code = "some";
             var name = "name";
             var stream = $"{{'code':'{code}', 'name':'{name}'}}".ToStream();
-            var product = await CmsProduct.FromStreamAsync(stream);
+            var product = await LegacyProduct.FromStreamAsync(stream);
             Assert.NotNull(product);
             Assert.Equal(code, product.Code);
             Assert.Equal(name, product.Name);
